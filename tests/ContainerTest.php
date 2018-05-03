@@ -140,6 +140,30 @@ class ContainerTest extends TestCase
 	}
 
 	/**
+	 * Test that the factory method needs to have a valid invokable
+	 * callback.
+	 * 
+	 * @expectedException DI\Exception\ExpectedInvokableException
+	 */
+	public function testFactoryWithInvalidCallback()
+	{
+		$container = new Container();
+		$container->factory('foo', 42);
+	}
+
+	/**
+	 * Test that the protect method needs to have a valid invokable
+	 * callback.
+	 * 
+	 * @expectedException DI\Exception\ExpectedInvokableException
+	 */
+	public function testProtectWithInvalidCallback()
+	{
+		$container = new Container();
+		$container->protect('foo', 42);
+	}
+
+	/**
 	 * Test that an exception is thrown when getting
 	 * an entry that does not exist.
 	 * 
