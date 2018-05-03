@@ -1,0 +1,35 @@
+{
+	"name": "timothyfisherdev/di",
+	"type": "library",
+	"description": "A very simple dependency injection implementation via use of a container.",
+	"keywords": ["di", "dependency injection", "container", "ioc", "psr-11", "psr11"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Timothy Fisher"
+		}
+	],
+	"require": {
+		"php": ">=7.1.0",
+		"psr/container": "^1.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^7.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"DI\\": "src/"
+		},
+		"exclude-from-classmap": [
+			"/tests/"
+		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"DI\\Test\\": "tests/"
+		}
+	},
+	"scripts": {
+		"test": "phpunit"
+	}
+}
