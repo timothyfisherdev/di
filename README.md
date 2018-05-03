@@ -1,5 +1,8 @@
 # DI - A PHP Dependency Injection Container
 
+[![Build Status](https://travis-ci.org/timothyfisherdev/di.svg?branch=master)](https://travis-ci.org/timothyfisherdev/di)
+[![Coverage Status](https://coveralls.io/repos/github/timothyfisherdev/di/badge.svg?branch=master)](https://coveralls.io/github/timothyfisherdev/di?branch=master)
+
 This library is a simple implementation of dependency injection via the use of a "container". This project was built simply for learning purposes as well as getting a handle on testing using PHPUnit, Coveralls for code coverage, and the concept of dependency injection.
 
 The container:
