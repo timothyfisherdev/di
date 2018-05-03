@@ -347,7 +347,7 @@ $container = new DI\Container();
 
 // Create something to run on every resolve
 $container->extend(function($resolved, $container) {
-    echo is_object($resolved) ? get_class($service) . ' created.<br />' : '';
+    echo is_object($resolved) ? get_class($resolved) . ' created.<br />' : '';
 });
 
 // Define our services
