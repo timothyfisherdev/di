@@ -47,4 +47,8 @@ interface ContainerInterface extends PsrContainerInterface, ArrayAccess
 	 * Add a service provider class that will add entries to the container.
 	 */
 	public function register(ServiceProvider $provider);
+
+	public function bind($abstract, $concrete);
+
+	public function useAutowiring(bool $boolean);
 }

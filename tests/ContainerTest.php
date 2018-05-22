@@ -509,4 +509,82 @@ class ContainerTest extends TestCase
 		unset($container['foo']);
 		$this->assertFalse(isset($container['foo']));
 	}
+
+	public function testAutowiringNoConstructor()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+
+		$fooNoConstructor = $container[FooNoConstructor::class];
+
+		$this->assertInstanceOf(FooNoConstructor::class, $fooNoConstructor);
+	}
+
+	public function testAutowiringConstructorNoArgs()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+
+		$fooConstructorNoArgs = $container[FooConstructorNoArgs::class];
+
+		$this->assertInstanceOf(FooConstructorNoArgs::class, $fooConstructorNoArgs);
+	}
+
+	public function testAutowiringConstructorOneArg()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+
+		$fooConstructorOneArg = $container[FooConstructorOneArg::class];
+
+		$this->assertInstanceOf(FooConstructorOneArg::class, $fooConstructorOneArg);
+		$this->assertInstanceOf(FooNoConstructor::class, $fooConstructorOneArg->arg);
+	}
+
+	public function testAutowiringConstructorMultipleArgs()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+
+		$fooConstructorMultipleArgs = $container[FooConstructorMultipleArgs::class];
+
+		$this->assertInstanceOf(FooConstructorMultipleArgs::class, $fooConstructorMultipleArgs);
+		$this->assertInstanceof(FooNoConstructor::class, $fooConstructorMultipleArgs->arg1);
+		$this->assertInstanceof(FooNoConstructor::class, $fooConstructorMultipleArgs->arg2);
+	}
+
+	public function testAutowiringRecursiveArgs()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+
+		$fooRecursiveArgs = $container[FooRecursiveArgs::class];
+
+		$this->assertInstanceOf(FooRecursiveArgs::class, $fooRecursiveArgs);
+		$this->assertInstanceOf(FooConstructorMultipleArgs::class, $fooRecursiveArgs->arg);
+	}
+
+	public function testAutowiringBindInterfaceToImplementation()
+	{
+		require_once 'fixtures.php';
+
+		$container = new Container();
+		$container->useAutowiring(true);
+		$container->bind(FooInterface::class, FooImplementation::class);
+
+		$fooTestBinding = $container[FooTestBinding::class];
+
+		$this->assertInstanceOf(FooTestBinding::class, $fooTestBinding);
+		$this->assertInstanceOf(FooImplementation::class, $fooTestBinding->arg);
+	}
 }

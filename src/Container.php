@@ -9,6 +9,7 @@ use DI\Exception\CyclicException;
 use DI\Exception\NotFoundException;
 use DI\Exception\ImmutableException;
 use DI\Exception\ExpectedInvokableException;
+use DI\Autowiring\ReflectionBasedAutowiring;
 
 /** 
  * A simple dependency injection implementation via use of a "container".
@@ -80,6 +81,10 @@ class Container implements ContainerInterface
 	 */
 	private $globals = [];
 
+	private $useAutowiring = false;
+
+	private $autowiring;
+
 	/**
 	 * Create the container.
 	 *
@@ -88,12 +93,14 @@ class Container implements ContainerInterface
 	 * We use SplObjectStorage to uniquely identify the
 	 * invokable definitions.
 	 * 
-	 * @param array $entries Service definitions and parameters.
+	 * @param array      $entries Service definitions and parameters.
+	 * @param Autowiring $entries The autowiring method.
 	 */
-	public function __construct(array $entries = [])
+	public function __construct(array $entries = [], Autowiring $autowiring = null)
 	{
 		$this->factories = new SplObjectStorage();
 		$this->protected = new SplObjectStorage();
+		$this->autowiring = $autowiring;
 
 		foreach ($entries as $id => $value) {
 			$this->add($id, $value);
@@ -112,7 +119,9 @@ class Container implements ContainerInterface
 	 */
 	public function get($id)
 	{
-		if (!isset($this->keys[$id])) {
+		$id = $this->resolveBinding($id);
+
+		if (!isset($this->keys[$id]) && !$this->useAutowiring) {
 			throw new NotFoundException($id);
 		}
 
@@ -124,23 +133,28 @@ class Container implements ContainerInterface
 
 		$this->resolving[$id] = true;
 
-		$definition = $this->entries[$id];
+		if (isset($this->keys[$id])) {
+			$definition = $this->entries[$id];
 
-		if (
-			isset($this->resolved[$id])
-			|| !$this->invokable($definition)
-			|| isset($this->protected[$definition])
-		) {
-			$this->callGlobals($definition);
-			return $definition;
-		}
+			if (
+				isset($this->resolved[$id])
+				|| !$this->invokable($definition)
+				|| isset($this->protected[$definition])
+			) {
+				$this->callGlobals($definition);
+				return $definition;
+			}
 
-		$service = $definition($this);
+			$service = $definition($this);
 
-		if (isset($this->factories[$definition])) {
-			unset($this->resolving[$id]);
-			$this->callGlobals($service);
-			return $service;
+			if (isset($this->factories[$definition])) {
+				unset($this->resolving[$id]);
+				$this->callGlobals($service);
+				return $service;
+			}
+		} else {
+			$autowiring = $this->autowiring ?: new ReflectionBasedAutowiring($this);
+			$service = $autowiring->autowire($id);
 		}
 
 		$this->resolved[$id] = true;
@@ -164,7 +178,9 @@ class Container implements ContainerInterface
 	 */
 	public function has($id)
 	{
-		return isset($this->keys[$id]);
+		$concrete = $this->resolveBinding($id);
+
+		return isset($this->keys[$concrete]) || isset($this->bindings[$id]);
 	}
 
 	/**
@@ -204,6 +220,8 @@ class Container implements ContainerInterface
 	 */
 	public function remove($id)
 	{
+		$id = $this->resolveBinding($id);
+
 		if (isset($this->keys[$id])) {
 			if (($obj = $this->entries[$id]) && is_object($obj)) {
 				unset($this->factories[$obj], $this->protected[$obj]);
@@ -288,6 +306,8 @@ class Container implements ContainerInterface
 	 */
 	public function extend($id, $callback = null)
 	{
+		$id = $this->resolveBinding($id);
+
 		if ($callback === null) {
 			$callback = $id;
 			$id = false;
@@ -376,6 +396,21 @@ class Container implements ContainerInterface
 		$provider->register($this);
 
 		return $this;
+	}
+
+	public function bind($abstract, $concrete, $contextual = null)
+	{
+		$this->bindings[$abstract] = $concrete;	
+	}
+
+	public function useAutowiring(bool $boolean)
+	{
+		$this->useAutowiring = $boolean;
+	}
+
+	private function resolveBinding($abstract)
+	{
+		return $this->bindings[$abstract] ?? $abstract;
 	}
 
 	/**
